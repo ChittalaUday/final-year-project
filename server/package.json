@@ -9,7 +9,15 @@
   "scripts": {
     "dev": "tsx watch index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "python:setup": "npm run python:create-env && npm run python:install",
+    "python:create-env": "python -m venv python-env",
+    "python:install": "npm run python:activate && pip install -r requirements.txt",
+    "python:activate": "python-env\\Scripts\\activate",
+    "python:test": "python python-scripts/test_clip_api.py --info",
+    "python:clean": "rmdir /s /q python-env",
+    "setup": "npm install && npm run python:setup",
+    "test:python-api": "python python-scripts/test_clip_api.py"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -23,12 +31,16 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "@types/multer": "^2.0.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "jimp": "^1.6.0",
     "morgan": "^1.10.1",
-    "pg": "^8.16.3"
+    "multer": "^2.0.2",
+    "pg": "^8.16.3",
+    "sharp": "^0.34.4"
   }
 }

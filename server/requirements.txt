@@ -1,0 +1,19 @@
+# CLIP and Image Processing Dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+clip-by-openai>=1.0
+Pillow>=9.0.0
+
+# Additional Image Processing
+opencv-python>=4.8.0
+
+# HTTP Client for API testing
+requests>=2.28.0
+
+# Optional: Development tools
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
+
+# Note: For GPU support, install appropriate CUDA version of PyTorch
+# Visit: https://pytorch.org/get-started/locally/
