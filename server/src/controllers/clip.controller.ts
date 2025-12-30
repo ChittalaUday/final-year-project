@@ -4,10 +4,6 @@ import type { Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -24,10 +20,13 @@ const upload = multer({
 
 // Interface for typed request
 export interface CompareImagesRequest extends Request {
-  files?: {
-    image1?: Express.Multer.File[];
-    image2?: Express.Multer.File[];
-  };
+  files?:
+    | {
+        image1?: Express.Multer.File[];
+        image2?: Express.Multer.File[];
+      }
+    | Express.Multer.File[]
+    | undefined;
   body: { tag?: string };
 }
 
@@ -56,23 +55,24 @@ export const compareImages = async (
     const image1Path = path.resolve(files.image1[0].path);
     const image2Path = path.resolve(files.image2[0].path);
 
-    // Python executable & script
-    const pythonPath = path.join(
-      process.cwd(),
-      "python-env",
-      "Scripts",
-      "python.exe"
-    );
-    const scriptPath = path.join(
-      process.cwd(),
-      "python-scripts",
-      "clip_compare_flexible.py"
-    );
+    // Call FastAPI endpoint
+    const fastApiUrl = process.env.FASTAPI_URL || "http://localhost:8000";
+    const FormData = require("form-data");
+    const formData = new FormData();
 
-    let cmd = `"${pythonPath}" "${scriptPath}" "${image1Path}" "${image2Path}"`;
-    if (tag) cmd += ` "${tag}"`;
+    // Read files and append to form data
+    formData.append("image1", fs.createReadStream(image1Path));
+    formData.append("image2", fs.createReadStream(image2Path));
+    if (tag) {
+      formData.append("tag", tag);
+    }
 
-    const { stdout, stderr } = await execAsync(cmd);
+    // Make request to FastAPI
+    const response = await fetch(`${fastApiUrl}/api/v1/clip/compare`, {
+      method: "POST",
+      body: formData,
+      headers: formData.getHeaders(),
+    });
 
     // Clean up uploaded files
     try {
@@ -82,25 +82,18 @@ export const compareImages = async (
       console.error("Error cleaning up files:", cleanupError);
     }
 
-    if (stderr) {
-      console.error("Python stderr:", stderr);
-      return res.status(500).json({
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({})) as { detail?: string };
+      console.error("FastAPI error:", errorData);
+      return res.status(response.status).json({
         success: false,
-        message: "Python execution error",
-        error: stderr,
+        message: "FastAPI error",
+        error: errorData.detail || "Unknown error",
       });
     }
 
-    // Parse JSON output from Python
-    let result;
-    try {
-      result = JSON.parse(stdout);
-    } catch (err) {
-      console.error("JSON parse error:", err, "stdout:", stdout);
-      return res
-        .status(500)
-        .json({ success: false, message: "Invalid JSON from Python script" });
-    }
+    // Parse JSON response from FastAPI
+    const result = await response.json();
 
     return res.status(200).json({
       success: true,

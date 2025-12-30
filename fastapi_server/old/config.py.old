@@ -1,0 +1,118 @@
+"""Configuration for the Career Recommendation API."""
+import os
+from pathlib import Path
+
+# Model paths
+BASE_DIR = Path(__file__).parent.parent
+MODELS_DIR = BASE_DIR / "research" / "Models"
+
+MODEL_PATHS = {
+    "random_forest": MODELS_DIR / "rf.sav",
+    "scaler": MODELS_DIR / "sc.sav",
+}
+
+# Course mapping (encoded value -> course name)
+# This mapping is based on the training data
+COURSE_MAPPING = {
+    0: "B.A",
+    1: "B.Arch",
+    2: "B.Com",
+    3: "B.Des",
+    4: "B.Ed",
+    5: "B.Plan",
+    6: "B.E",
+    7: "B.Pharma",
+    8: "B.Sc",
+    9: "B.Tech",
+    10: "BA",
+    11: "BBA",
+    12: "BCA",
+    13: "BE",
+    14: "BHM",
+    15: "BMS",
+    16: "BSc",
+    17: "BTech",
+    18: "CA",
+    19: "Certification course",
+    20: "Diploma",
+    21: "Integrated MTech",
+    22: "LLB",
+    23: "M.Arch",
+    24: "M.Com",
+    25: "M.Des",
+    26: "M.Plan",
+    27: "M.Sc",
+    28: "M.Tech",
+    29: "MA",
+    30: "MBA",
+    31: "MCA",
+    32: "MCom",
+    33: "ME",
+    34: "MS",
+    35: "MSc",
+    36: "MTech",
+    37: "PGDBA",
+    38: "PGDM",
+    39: "PGPM",
+    40: "Ph.D",
+}
+
+# Valid interests from the notebook
+VALID_INTERESTS = [
+    "cloud computing", "technology", "understand human behaviour", "sales/marketing",
+    "trading", "home interior design", "research", "teaching", "understand human body",
+    "content writing", "govt. job", "service", "infrastructure", "financial analysis",
+    "take risk for profits", "entrepreneurship", "digital marketing", "market research",
+    "agriculture", "construction management", "data analytics", "data scientist",
+    "industries", "information technology", "news coverage", "social justice",
+    "supply chain analysis", "game industry", "design", "web designing", "web development",
+    "social causes", "blockchain", "machine learning", "excel", "sports industry",
+    "product life cycle management", "sap consultant in mm", "project management",
+    "navy defence related", "oil and gas", "biotechnology", "software developer",
+    "hospitality", "salesforce admin", "social media marketing", "software job", "it",
+    "urban planning", "data entry or telecalling work", "mobile app development",
+    "geography", "geology", "statistical programmer", "software engineering",
+    "gardening", "operations", "cyber security", "application development",
+    "higher studies", "retailer", "litigation & legal service", "animation",
+    "all fields related to data science", "analysis", "architecture and construction",
+    "application development"
+]
+
+# Valid skills from the notebook
+VALID_SKILLS = [
+    "python", "sql", "java", "critical thinking", "analytic thinking", "programming",
+    "work under pressure", "logical skills", "problem solving skills", "people management",
+    "communication skills", "accounting skills", "plc allen bradley", "plc ladder logic",
+    "labview", "business analysis", "end-to-end project management",
+    "cross-functional team leadership", "requirements gathering", "lean six sigma",
+    "lean six sigma blackbelt", "productivity improvement", "c", "html", "active listening",
+    "gathering information", "artistic/creative skills", "leadership", "editing",
+    "writing skills", "medical knowledge", "hr", "teaching", "cost accounting",
+    "team work", "tableau", "data visualization skills( power bi/ tableau )",
+    "machine learning skills", "artificial intelligence", "matlab", "r", "designing skills",
+    "proeficiency in software like staad pro, etabs", "hardware skills", "product knowledge",
+    "risk management skills", "cad/cae(autocad/catia/ansys/proe/seimensnx)",
+    "finance related skills", "negotiation skills", "mass communication", "sales",
+    "interpersonal skills", "wealth management", "financial analysis", "financial modeling",
+    "marketing strategy", "financial services", "design and analysis of automobile components",
+    "vehicle maintenance and reconditioning", "design for manufacturer and assemble",
+    "creativity skills", "excel", "teamwork", "time management", "company secretarial work",
+    "legal compliance", "interpersonal communication", "companies act", "indirect taxation",
+    "cloud computing", "reporting", "observation skills", "subject knowledge",
+    "business knowledge", "market study", "civil & criminal law", "social media marketing",
+    "bootstrap", "node.js", "angular", "jira", "trello", "jquery", "javascript", "ajax",
+    "php", "codeignitor", "loopback", "hospitality", "polymerase chain reaction (pcr)",
+    "life sciences", "protein purification", "protein chemistry", "protein assays",
+    "protein electrophoresis", "protein chromatography", "western blotting",
+    "protein structure prediction", "protein kinases", "protein characterization",
+    "protein engineering", "phytochemistry", "metabolomics", "dna", "biochemistry",
+    "bioinformatics", "cell culture", "staad pro", "etabs", "data science", "sap",
+    ".net framework", "transact", "technical machine fitter", "c#", "good communication skills",
+    "client management", "business analytics", "risk analytics", "sas", "marketing management",
+    "market research", "business strategy", "commercial banking", "portfolio management",
+    "supply chain management", "business process reengineering", "consumer behaviour",
+    "long-term customer relationships", "retail marketing", "financial accounting",
+    "credit risk modeling", "security analysis", "working capital management",
+    "strategic marketing", "investment banking", "structured finance", "building rapport",
+    "2d/3d animation", "oracle", "no"
+]

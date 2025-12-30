@@ -21,7 +21,7 @@ const errLogStream = fs.createWriteStream(
 
 const errStream: StreamOptions = {
   write: (message) => {
-    console.log(__filename);
+    console.log("--- ERROR LOG ---");
     errLogStream.write(message);
   },
 };

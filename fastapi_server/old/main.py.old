@@ -1,0 +1,148 @@
+"""FastAPI application for career recommendation."""
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import logging
+
+from models import CareerInput, CareerRecommendation, HealthResponse, CoursePrediction
+from predictor import CareerPredictor
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Global predictor instance
+predictor: CareerPredictor = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    global predictor
+    logger.info("Starting Career Recommendation API...")
+    try:
+        predictor = CareerPredictor()
+        logger.info("✓ Models loaded successfully")
+    except Exception as e:
+        logger.error(f"✗ Failed to load models: {str(e)}")
+        raise
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down Career Recommendation API...")
+
+
+# Create FastAPI app
+app = FastAPI(
+    title="Career Recommendation API",
+    description="ML-powered career recommendation system based on student profile",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify actual origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/", tags=["Root"])
+async def root():
+    """Root endpoint."""
+    return {
+        "message": "Career Recommendation API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+
+@app.get("/health", response_model=HealthResponse, tags=["Health"])
+async def health_check():
+    """Health check endpoint."""
+    return HealthResponse(
+        status="healthy" if predictor and predictor.is_loaded() else "unhealthy",
+        model_loaded=predictor is not None and predictor.is_loaded()
+    )
+
+
+@app.post("/api/v1/predict", response_model=CareerRecommendation, tags=["Prediction"])
+async def predict_career(input_data: CareerInput):
+    """
+    Predict career/course recommendation based on student profile.
+    
+    - **gender**: Student's gender (Male/Female)
+    - **interest**: Comma or semicolon separated interests
+    - **skills**: Comma or semicolon separated skills
+    - **grades**: CGPA or percentage (0-100)
+    
+    Returns the predicted course along with confidence score and top 3 predictions.
+    """
+    global predictor
+    
+    if predictor is None or not predictor.is_loaded():
+        raise HTTPException(
+            status_code=503,
+            detail="Model not loaded. Service unavailable."
+        )
+    
+    try:
+        # Make prediction
+        result = predictor.predict(
+            gender=input_data.gender,
+            interest=input_data.interest,
+            skills=input_data.skills,
+            grades=input_data.grades
+        )
+        
+        # Convert to response model
+        return CareerRecommendation(
+            predicted_course=result["predicted_course"],
+            confidence=result["confidence"],
+            top_predictions=[
+                CoursePrediction(**pred) for pred in result["top_predictions"]
+            ]
+        )
+    
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Prediction error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction failed: {str(e)}"
+        )
+
+
+@app.get("/api/v1/info", tags=["Info"])
+async def get_info():
+    """Get information about the API and model."""
+    return {
+        "model_type": "Random Forest Regressor",
+        "features": [
+            "gender",
+            "interest (multi-hot encoded)",
+            "skills (multi-hot encoded)",
+            "grades"
+        ],
+        "preprocessing": [
+            "Label encoding for gender",
+            "Multi-label binarization for interests and skills",
+            "Standard scaling for all features"
+        ],
+        "output": "Course recommendation with confidence scores"
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

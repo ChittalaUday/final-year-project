@@ -17,6 +17,14 @@ datasource pg {
 model User {
   id        Int      @id @default(autoincrement())
   name      String
+  role      Role     @default(user)
+  password  String
   email     String   @unique
+  dob       DateTime
   createdAt DateTime @default(now())
+}
+
+enum Role {
+  user
+  admin
 }
