@@ -1,217 +1,109 @@
-# FastAPI ML Server
+# 🧠 FastAPI ML Server or AI / ML Service
 
-A professional FastAPI server providing ML-powered APIs for CLIP image comparison and career recommendation.
+Professional AI/ML microservice providing career recommendations and image analysis capabilities using FastAPI. This service operates as the intelligence layer of the Skill Compass platform.
 
-## Features
+## 1️⃣ Overview
 
-- **CLIP Image Comparison**: Compare images using OpenAI's CLIP model with optional text tag matching
-- **Career Recommendation**: ML-powered career/course recommendations based on student profiles
-- **RESTful API**: Clean, versioned API endpoints with automatic OpenAPI documentation
-- **Production Ready**: Proper error handling, logging, and configuration management
+**Purpose**: To handle all machine learning operations separately from the main business logic.  
+**Role**: Receives computation-heavy requests (like image comparison or career prediction) from the Node.js backend, processes them using loaded models, and returns structured data.
 
-## Project Structure
+## 2️⃣ Tech Stack
+
+*   **Language**: Python 3.10+
+*   **Framework**: FastAPI (High-performance web framework)
+*   **ML Libraries**:
+    *   `torch`, `torchvision`, `clip-by-openai` (Image analysis)
+    *   `scikit-learn`, `pandas`, `numpy` (Career data analysis)
+*   **Server**: Uvicorn (ASGI)
+*   **Validation**: Pydantic
+
+## 3️⃣ Folder Structure
 
 ```
 fastapi_server/
 ├── app/
-│   ├── api/              # API endpoints
-│   │   ├── deps.py       # Shared dependencies
-│   │   └── v1/           # API version 1
-│   ├── config/           # Configuration
-│   ├── core/             # Core utilities
-│   ├── models/           # Pydantic models
-│   ├── services/         # Business logic
-│   └── utils/            # Helper functions
-├── ml_models/            # ML model storage
-├── uploads/              # Temporary uploads
-├── requirements.txt      # Python dependencies
-└── .env                  # Environment configuration
+│   ├── api/v1/          # Endpoints (career.py, clip.py, health.py)
+│   ├── core/            # Logging, exceptions, shared logic
+│   ├── models/          # Pydantic data schemas (Request/Response)
+│   ├── services/        # Business logic & Model loading (Singleton patterns)
+│   ├── utils/           # Helper functions
+│   ├── config.py        # Settings management
+│   └── main.py          # Application entry point
+├── ml_models/           # Local cache for CLIP models
+├── requirements.txt     # Python dependencies
+└── .env.example         # Template for environment variables
 ```
 
-## Setup
+## 4️⃣ Current Features (Implemented)
+
+*   **Career Prediction API**: Recommends careers based on student academic performance and interests (using Scikit-learn).
+*   **CLIP Image Comparison**: Compares similarity between two uploaded images (features extraction via OpenAI CLIP).
+*   **Text-to-Image Matching**: Optional text tag support for checking image relevance to a concept.
+*   **Standardized API Response**: Uniform JSON structure for success and error states.
+*   **Model Caching**: Models are loaded once at startup for performance.
+*   **Swagger/Redoc**: Automatic interactive documentation.
+
+## 5️⃣ Partially Implemented / In Progress
+
+*   **Advanced Analytics**: More detailed breakdown of career compatibility.
+*   **Model Retraining Endpoint**: automated pipeline to update models with new data (Planned).
+
+## 6️⃣ Environment Variables
+
+Create a `.env` file in `fastapi_server/` based on `.env.example`:
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `FASTAPI_HOST` | Host to bind the server | `0.0.0.0` |
+| `FASTAPI_PORT` | Port to run the server | `8000` |
+| `CORS_ORIGINS` | Allowed frontend/backend origins | `http://localhost:3000,...` |
+| `DEBUG` | Enable debug logs | `False` |
+| `CAREER_MODEL_DIR` | Path to stored `.pkl` models | `../research/Models` |
+| `CLIP_MODEL_CACHE_DIR` | Path to cache downloaded CLIP models | `./ml_models/clip` |
+| `UPLOAD_DIR` | Temp directory for processing uploads | `./uploads` |
+
+## 7️⃣ How to Run This Service
 
 ### Prerequisites
+*   Python 3.10 or higher
+*   RAM: ~4GB recommended (for loading CLIP/ML models)
 
-- Python 3.8 or higher
-- pip package manager
+### Setup
+1.  Navigate to the directory:
+    ```bash
+    cd fastapi_server
+    ```
+2.  Create virtual environment:
+    ```bash
+    python -m venv venv
+    # Windows
+    venv\Scripts\activate
+    # Mac/Linux
+    # source venv/bin/activate
+    ```
+3.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  Configure Environment:
+    Copy `.env.example` to `.env` and adjust paths if necessary.
 
-### Installation
-
-1. **Create and activate virtual environment**:
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate  # Windows
-   # or
-   source venv/bin/activate  # Linux/Mac
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment** (optional):
-   - Copy `.env.example` to `.env` if needed
-   - Modify settings in `.env` as required
-
-### Running the Server
-
-**Development mode** (with auto-reload):
+### Start Server
 ```bash
+# Development (Auto-reload)
 python -m uvicorn app.main:app --reload --port 8000
 ```
+Server will be available at `http://localhost:8000`.
 
-**Production mode**:
-```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
+## 8️⃣ API / Integration Notes
 
-The server will start on http://localhost:8000
+*   **Communication**: This service typically sits behind the Node.js API Gateway.
+*   **Docs**: Visit `http://localhost:8000/docs` for full Swagger UI.
+*   **Health Check**: `GET /health` to verify if models are loaded.
+*   **Flow**:
+    *   Node.js receives User Request -> Forwards to FastAPI (`/api/v1/...`) -> FastAPI returns JSON -> Node.js forwards to Client.
 
-## API Documentation
+## 9️⃣ Known Limitations
 
-Once the server is running, access:
-
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI JSON**: http://localhost:8000/openapi.json
-
-## API Endpoints
-
-### CLIP Image Comparison
-
-#### `POST /api/v1/clip/compare`
-
-Compare two images using CLIP model.
-
-**Request**:
-- `image1` (file): First image
-- `image2` (file): Second image  
-- `tag` (optional string): Text tag for semantic comparison
-
-**Response**:
-```json
-{
-  "image_similarity": 0.85,
-  "text_similarity": 0.72,
-  "decision": "Images and text match",
-  "details": "Image similarity: 0.8500, Text similarity ('cat'): 0.7200...",
-  "is_image_similar": true,
-  "is_text_similar": true,
-  "thresholds": {
-    "image": 0.3,
-    "text": 0.3,
-    "image_strict": 0.8
-  }
-}
-```
-
-#### `GET /api/v1/clip/info`
-
-Get CLIP API information.
-
-### Career Recommendation
-
-#### `POST /api/v1/career/predict`
-
-Get career/course recommendation.
-
-**Request**:
-```json
-{
-  "gender": "Female",
-  "interest": "Cloud computing, Technology",
-  "skills": "Python, SQL, Java",
-  "grades": 85.0
-}
-```
-
-**Response**:
-```json
-{
-  "predicted_course": "B.Tech",
-  "confidence": 0.85,
-  "top_predictions": [
-    {"course": "B.Tech", "probability": 0.85},
-    {"course": "B.Sc", "probability": 0.10},
-    {"course": "MCA", "probability": 0.05}
-  ]
-}
-```
-
-#### `GET /api/v1/career/info`
-
-Get career recommendation API information.
-
-### Health & Status
-
-#### `GET /health`
-
-Check service health status.
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "services": {
-    "career_recommendation": {
-      "status": "healthy",
-      "model_loaded": true
-    },
-    "clip": {
-      "status": "healthy",
-      "model_loaded": true
-    }
-  }
-}
-```
-
-## Configuration
-
-Edit `.env` to configure:
-
-- **Server settings**: Host, port, debug mode
-- **CORS origins**: Allowed origins for cross-origin requests
-- **Model paths**: Locations of ML models
-- **Upload settings**: Max file size, allowed formats
-- **CLIP thresholds**: Similarity thresholds
-
-## Development
-
-### Code Structure
-
-- **Models** (`app/models/`): Pydantic models for request/response validation
-- **Services** (`app/services/`): Business logic and ML model handling
-- **API Routes** (`app/api/v1/`): FastAPI route handlers
-- **Config** (`app/config/`): Application settings management
-- **Core** (`app/core/`): Shared utilities (exceptions, logging)
-
-### Adding New Endpoints
-
-1. Create Pydantic models in `app/models/`
-2. Implement business logic in `app/services/`
-3. Create route handlers in `app/api/v1/`
-4. Register router in `app/api/v1/__init__.py`
-
-## Troubleshooting
-
-### Model Loading Errors
-
-Ensure model files exist in the paths specified in `.env`:
-- Career models: `../research/Models/rf.sav` and `sc.sav`
-- CLIP model will be downloaded automatically on first run
-
-### Port Already in Use
-
-Change the port in `.env` or pass `--port` flag:
-```bash
-uvicorn app.main:app --port 8001
-```
-
-### CORS Issues
-
-Add your origin to `CORS_ORIGINS` in `.env`.
-
-## License
-
-ISC
+*   **Cold Start**: Model loading can take 10-20 seconds on initial startup.
+*   **Memory Usage**: CLIP model is memory intensive; deploying on very small instances (<2GB RAM) may crash.

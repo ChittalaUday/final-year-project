@@ -6,4 +6,10 @@ declare global {
       user?: string | JwtPayload | undefined;
     }
   }
+  interface Response {
+    success: boolean;
+    message: string;
+    data?: any;
+    error?: any;
+  }
 }

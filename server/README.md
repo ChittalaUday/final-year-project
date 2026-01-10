@@ -1,197 +1,109 @@
-# Server Setup with Python CLIP Integration
+# 🌐 Backend API Server
 
-This server provides a Node.js API with Python CLIP (Contrastive Language-Image Pre-training) integration for image comparison.
+The primary backend service for the Skill Compass platform, serving as the API Gateway and business logic handler.
 
-## 🚀 Quick Start
+## 1️⃣ Overview
 
-### Prerequisites
-- Node.js 18+ 
-- Python 3.8+
-- Git
+**Purpose**: Manages user authentication, data persistence, and coordinates communication between the Client (Flutter) and the AI/ML Service (FastAPI).  
+**Role**: It is the central hub. Clients only talk to this server; they do not access the Database or ML services directly.
 
-### Installation
+## 2️⃣ Tech Stack
 
-1. **Clone and navigate to server directory:**
-   ```bash
-   cd server
-   ```
+*   **Runtime**: Node.js
+*   **Language**: TypeScript
+*   **Framework**: Express.js
+*   **Database**: PostgreSQL
+*   **ORM**: Prisma
+*   **Authentication**: JWT (JSON Web Tokens) & Bcrypt
+*   **File Handling**: Multer (Uploads), Sharp/Jimp (Image Processing)
+*   **Validation**: Joi
+*   **Testing**: None currently integrated.
 
-2. **Install Node.js dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Python environment:**
-   
-   **Windows:**
-   ```bash
-   # Option 1: Run setup script
-   setup-python.bat
-   
-   # Option 2: Manual setup
-   npm run python:setup
-   ```
-   
-   **Linux/macOS:**
-   ```bash
-   # Option 1: Run setup script
-   chmod +x setup-python.sh
-   ./setup-python.sh
-   
-   # Option 2: Manual setup
-   npm run python:setup
-   ```
-
-4. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-## 🐍 Python Environment Management
-
-### Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run python:setup` | Complete Python environment setup |
-| `npm run python:create-env` | Create virtual environment only |
-| `npm run python:install` | Install Python dependencies |
-| `npm run python:test` | Test CLIP API connection |
-| `npm run python:clean` | Remove Python environment |
-| `npm run setup` | Full setup (Node.js + Python) |
-
-### Manual Python Environment
-
-If you prefer manual setup:
-
-```bash
-# Create virtual environment
-python -m venv python-env
-
-# Activate environment
-# Windows:
-python-env\Scripts\activate
-# Linux/macOS:
-source python-env/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-## 📁 Project Structure
+## 3️⃣ Folder Structure
 
 ```
 server/
-├── python-scripts/          # Python CLIP scripts
-│   ├── clip_compare_flexible.py   # Main comparison script
-│   └── test_clip_api.py           # API test client
-├── python-env/              # Python virtual environment (gitignored)
-├── src/                     # Node.js source code
-│   ├── controllers/
-│   │   └── clip.controller.ts     # CLIP API controller
-│   └── routes/
-│       └── api/
-│           └── clip.route.ts      # CLIP API routes
-├── uploads/                 # Temporary file uploads (gitignored)
-├── requirements.txt         # Python dependencies
-├── setup-python.bat        # Windows Python setup
-├── setup-python.sh         # Linux/macOS Python setup
-└── package.json            # Node.js dependencies and scripts
+├── src/
+│   ├── config/          # Database & App configuration
+│   ├── controllers/     # Request handlers (Auth, CLIP proxy)
+│   ├── middleware/      # Auth checks, error handling, logging
+│   ├── routes/          # API route definitions
+│   │   ├── api/         # V1 routes (auth, clip, users)
+│   ├── services/        # Business logic abstraction
+│   ├── models/          # (Mostly handled by Prisma schemas)
+│   └── app.ts           # Express app setup
+├── prisma/              # Database schema & migrations
+├── .env.example         # Environment variables template
+└── index.ts             # Server entry point
 ```
 
-## 🔗 API Endpoints
+## 4️⃣ Current Features (Implemented)
 
-### CLIP Image Comparison
+*   **User Authentication**: Register/Login endpoints with JWT issuance.
+*   **Secure Password Storage**: Hashing using Bcrypt.
+*   **Proxy to ML Service**: Receives file uploads/requests for Image Comparison (CLIP) and securely forwards them to the Python FastAPI server.
+*   **Request Logging**: using Morgan.
+*   **Global Error Handling**: Centralized error middleware.
 
-**POST** `/api/clip/compare`
-- Compare two images with optional text tag
-- **Body:** `multipart/form-data`
-  - `image1`: Image file (required)
-  - `image2`: Image file (required) 
-  - `tag`: Text description (optional)
+## 5️⃣ Partially Implemented / In Progress
 
-**GET** `/api/clip/info`
-- Get API information and usage details
+*   **User Profile Management**: Routes exist but basic CRUD is minimal.
+*   **Authorization Levels**: Role-based access control (Admin vs User) is scaffolding.
 
-### Example Usage
+## 6️⃣ Environment Variables
 
+Create a `.env` file in `server/` based on `.env.example`:
+
+| Key | Description | Default |
+| :--- | :--- | :--- |
+| `PORT` | API Server Port | `5003` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://...` |
+| `JWT_SECRET` | Secret key for signing tokens | (Set a strong secret) |
+| `FASTAPI_URL` | URL of the running Python ML service | `http://localhost:8000` |
+| `NODE_ENV` | Environment (development/production) | `development` |
+
+## 7️⃣ How to Run This Service
+
+### Prerequisites
+*   Node.js (v18+)
+*   PostgreSQL Database running
+
+### Setup
+1.  Navigate to the directory:
+    ```bash
+    cd server
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Configure Environment:
+    Copy `.env.example` to `.env` and fill in your DB credentials and JWT secret.
+4.  Database Migration:
+    ```bash
+    npx prisma generate
+    # If migrations needed:
+    # npx prisma migrate dev
+    ```
+
+### Start Server
 ```bash
-# Test API info
-npm run python:test -- --info
+# Development (with auto-restart)
+npm run dev
 
-# Compare two images
-npm run python:test -- --image1 path/to/image1.jpg --image2 path/to/image2.jpg
-
-# Compare with text tag
-npm run python:test -- --image1 path/to/image1.jpg --image2 path/to/image2.jpg --tag "a red car"
+# Production Build
+npm run build
+npm start
 ```
+Server runs on `http://localhost:5003`.
 
-## 🛠️ Development
+## 8️⃣ API / Integration Notes
 
-### Environment Variables
+*   **Auth**: Most endpoints require `Authorization: Bearer <token>` header.
+*   **Integration with ML**:
+    *   The `POST /api/clip/compare` endpoint accepts `multipart/form-data`.
+    *   It temporarily saves files -> sends to FastAPI -> cleans up files -> returns ML result.
 
-Create a `.env` file in the server directory:
+## 9️⃣ Known Limitations
 
-```env
-PORT=5003
-NODE_ENV=development
-```
-
-### Testing Python Integration
-
-```bash
-# Test Python environment
-python-env/Scripts/python python-scripts/test_clip_api.py --info
-
-# Test with sample images (replace with actual paths)
-python-env/Scripts/python python-scripts/test_clip_api.py --image1 test1.jpg --image2 test2.jpg
-```
-
-## 📦 Dependencies
-
-### Node.js Dependencies
-- Express.js for API server
-- Multer for file uploads
-- TypeScript for type safety
-
-### Python Dependencies
-- PyTorch for deep learning
-- CLIP for image-text understanding
-- Pillow for image processing
-- Requests for HTTP testing
-
-## 🚨 Before Git Commit
-
-The `.gitignore` is configured to exclude:
-- ✅ `python-env/` - Virtual environment
-- ✅ `uploads/*` - Temporary uploads
-- ✅ `__pycache__/` - Python cache files
-- ✅ `*.pyc` - Compiled Python files
-- ✅ `.env` - Environment variables
-
-### Pre-commit Checklist
-- [ ] Python environment is working: `npm run python:test`
-- [ ] Node.js server starts: `npm run dev`
-- [ ] No sensitive files in git: `git status`
-- [ ] All tests pass
-
-## 🐛 Troubleshooting
-
-### Python Issues
-1. **"Python not found"**: Install Python 3.8+ and add to PATH
-2. **"pip install failed"**: Try upgrading pip: `python -m pip install --upgrade pip`
-3. **CUDA/GPU issues**: Install appropriate PyTorch version from [pytorch.org](https://pytorch.org)
-
-### Node.js Issues
-1. **"Port already in use"**: Change PORT in `.env` or kill existing process
-2. **"Module not found"**: Run `npm install`
-
-### Integration Issues
-1. **"Python script error"**: Check python-env activation in controller
-2. **"File upload failed"**: Ensure uploads/ directory exists
-
-## 📚 Additional Resources
-
-- [CLIP Paper](https://arxiv.org/abs/2103.00020)
-- [PyTorch Installation](https://pytorch.org/get-started/locally/)
-- [Express.js Documentation](https://expressjs.com/)
+*   **File Cleanup**: If the server crashes mid-process, temp files in `uploads/` might remain.

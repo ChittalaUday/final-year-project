@@ -22,12 +22,13 @@ const errLogStream = fs.createWriteStream(
 const errStream: StreamOptions = {
   write: (message) => {
     console.log("--- ERROR LOG ---");
+    message = message.toString() + `\n ${"-".repeat(50)}\n`;
     errLogStream.write(message);
   },
 };
 const format = ":method :url :status :response-time ms - :res[content-length]";
 
 export const errorLogger = morgan(format, {
-  skip: (req, res) => res.statusCode < 400, // skip non-errors
+  skip: (req, res) => res.statusCode < 500, // skip non-errors
   stream: errStream,
 });

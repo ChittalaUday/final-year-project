@@ -14,16 +14,16 @@ import os
 
 # CELL 2: Save the model with directory creation
 # Replace cell 66 content with:
-"""
-# Create the directory if it doesn't exist
-model_path = r'C:\Users\hp\Documents\Course Recommendation System\Models'
-os.makedirs(model_path, exist_ok=True)
+# """
+# # Create the directory if it doesn't exist
+# model_path = r'C:\Users\hp\Documents\Course Recommendation System\Models'
+# os.makedirs(model_path, exist_ok=True)
 
-# Save the model
-model_file = os.path.join(model_path, 'random_forest_grid2.sav')
-joblib.dump(grid_search_forest, model_file)
-print(f"Model saved successfully to: {model_file}")
-"""
+# # Save the model
+# model_file = os.path.join(model_path, 'random_forest_grid2.sav')
+# joblib.dump(grid_search_forest, model_file)
+# print(f"Model saved successfully to: {model_file}")
+# """
 
 print("Instructions:")
 print("=" * 60)
