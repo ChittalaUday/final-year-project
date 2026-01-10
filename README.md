@@ -66,7 +66,21 @@ You can run the Backend and ML Service concurrently with one command:
 npm run dev
 ```
 
-#### Step 3: Run the Client
+#### Step 3: Database Initialization & Seeding
+
+Before using the application, you must push the schema and seed the initial data (Skills and Interests):
+
+```bash
+# Push schema and create tables
+cd server
+npx prisma migrate dev
+
+# Seed the data
+cd ..
+npm run db:seed
+```
+
+#### Step 4: Run the Client
 
 ```bash
 npm run dev:client

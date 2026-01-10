@@ -12,7 +12,8 @@
     "dev": "concurrently -n \"SERVER,ML\" -c \"blue,yellow\" \"npm run dev:server\" \"npm run dev:ml\"",
     "dev:server": "cd server && npm run dev",
     "dev:ml": "cd fastapi_server && python -m uvicorn app.main:app --reload",
-    "dev:client": "cd skill_compass_ai && flutter run"
+    "dev:client": "cd skill_compass_ai && flutter run",
+    "db:seed": "cd server && npm exec prisma db seed"
   },
   "repository": {
     "type": "git",

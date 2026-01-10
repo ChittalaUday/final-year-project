@@ -28,46 +28,46 @@ enum ComparisonStatus {
 
 // Core User Model
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   password  String
   name      String
-  role      Role     @default(user)
+  role      Role      @default(user)
   dob       DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Relations
-  profile            Profile?
-  careerPredictions  CareerPrediction[]
-  imageComparisons   ImageComparison[]
-  skills             UserScill[]
+  profile           Profile?
+  careerPredictions CareerPrediction[]
+  imageComparisons  ImageComparison[]
+  skills            UserSkill[]
 }
 
 // Extended User Profile
 model Profile {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   bio         String?
   avatarUrl   String?
   githubUrl   String?
   linkedinUrl String?
-  userId      Int      @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int     @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Skill Management
 model Skill {
   id    Int         @id @default(autoincrement())
   name  String      @unique
-  users UserScill[]
+  users UserSkill[]
 }
 
-model UserScill {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  skillId   Int
-  user      User     @relation(fields: [userId], references: [id])
-  skill     Skill    @relation(fields: [skillId], references: [id])
+model UserSkill {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  skillId    Int
+  user       User     @relation(fields: [userId], references: [id])
+  skill      Skill    @relation(fields: [skillId], references: [id])
   assignedAt DateTime @default(now())
 
   @@unique([userId, skillId])
@@ -75,13 +75,13 @@ model UserScill {
 
 // History of Career Recommendations
 model CareerPrediction {
-  id              Int      @id @default(autoincrement())
-  inputData       Json     // Store the academic/interest parameters sent to ML
-  predictionResult Json    // Store the raw result from ML service
-  createdAt       DateTime @default(now())
-  
-  userId          Int
-  user            User     @relation(fields: [userId], references: [id])
+  id               Int      @id @default(autoincrement())
+  inputData        Json // Store the academic/interest parameters sent to ML
+  predictionResult Json // Store the raw result from ML service
+  createdAt        DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 }
 
 // History of CLIP Image Comparisons
@@ -92,9 +92,14 @@ model ImageComparison {
   tag             String?
   similarityScore Float?
   status          ComparisonStatus @default(PENDING)
-  resultData      Json?            // Full detailed response from ML
+  resultData      Json? // Full detailed response from ML
   createdAt       DateTime         @default(now())
-  
-  userId          Int
-  user            User             @relation(fields: [userId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Interest {
+  id   Int    @id @default(autoincrement())
+  name String @unique
 }

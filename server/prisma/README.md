@@ -10,15 +10,15 @@ This document provides a comprehensive technical breakdown of the PostgreSQL dat
 - **Users** have a **One-to-One** relationship with **Profiles** (extended details).
 - **Users** have a **One-to-Many** relationship with **CareerPredictions** (history).
 - **Users** have a **One-to-Many** relationship with **ImageComparisons** (history).
-- **Users** have a **Many-to-Many** relationship with **Skills** (via the explicit join table `UserScill`).
+- **Users** have a **Many-to-Many** relationship with **Skills** (via the explicit join table `UserSkill`).
 
 ```mermaid
 erDiagram
     User ||--o| Profile : "has (1:1)"
     User ||--o{ CareerPrediction : "requests (1:N)"
     User ||--o{ ImageComparison : "performs (1:N)"
-    User ||--|{ UserScill : "has (M:N)"
-    Skill ||--|{ UserScill : "belongs to (M:N)"
+    User ||--|{ UserSkill : "has (M:N)"
+    Skill ||--|{ UserSkill : "belongs to (M:N)"
 
     User {
         Int id PK
@@ -139,11 +139,11 @@ erDiagram
 
 **Relationships**:
 
-- `users`: List of `UserScill` entries (Many-to-Many).
+- `users`: List of `UserSkill` entries (Many-to-Many).
 
 ---
 
-### 🔗 `UserScill` (Join Table)
+### 🔗 `UserSkill` (Join Table)
 
 **Purpose**: Explicit Many-to-Many link between Users and Skills, allowing extra metadata (like `assignedAt`).
 
@@ -160,6 +160,17 @@ erDiagram
 
 ---
 
+### 🌟 `Interest`
+
+**Purpose**: Master list of all available interests in the platform for career recommendations.
+
+| Column | Type     | Attributes                          | Description                                                   |
+| :----- | :------- | :---------------------------------- | :------------------------------------------------------------ |
+| `id`   | `Int`    | **PK**, `@default(autoincrement())` | Unique identifier.                                            |
+| `name` | `String` | **Unique**                          | Name of the interest (e.g., "Cloud computing", "Technology"). |
+
+---
+
 ## 3️⃣ Enums & Types
 
 ### Enum: `Role`
@@ -168,8 +179,8 @@ Used in `User.role` for authorization.
 
 ```prisma
 enum Role {
-  user   // Standard access
-  admin  // Elevated access (manage users, view all logs)
+  user // Standard access
+  admin // Elevated access (manage users, view all logs)
 }
 ```
 
@@ -179,9 +190,9 @@ Used in `ImageComparison.status` to track ML processing state.
 
 ```prisma
 enum ComparisonStatus {
-  PENDING    // Request sent to FastAPI, waiting for response
-  COMPLETED  // Result received successfully
-  FAILED     // Error occurred during processing
+  PENDING // Request sent to FastAPI, waiting for response
+  COMPLETED // Result received successfully
+  FAILED // Error occurred during processing
 }
 ```
 
