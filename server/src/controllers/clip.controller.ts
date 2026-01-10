@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { sendResponse } from "../utils/customResponse.js";
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -39,17 +40,19 @@ export const uploadImages = upload.fields([
 // Compare images endpoint
 export const compareImages = async (
   req: CompareImagesRequest,
-  res: Response
+  res: Response,
 ) => {
   try {
     const files = req.files as { [key: string]: Express.Multer.File[] };
     const { tag } = req.body;
 
     if (!files?.image1?.[0] || !files?.image2?.[0]) {
-      return res.status(400).json({
-        success: false,
-        message: "Both image1 and image2 are required",
-      });
+      return sendResponse(
+        res,
+        false,
+        "Both image1 and image2 are required",
+        400,
+      );
     }
 
     const image1Path = path.resolve(files.image1[0].path);
@@ -83,23 +86,24 @@ export const compareImages = async (
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({})) as { detail?: string };
+      const errorData = (await response.json().catch(() => ({}))) as {
+        detail?: string;
+      };
       console.error("FastAPI error:", errorData);
-      return res.status(response.status).json({
-        success: false,
-        message: "FastAPI error",
-        error: errorData.detail || "Unknown error",
-      });
+      return sendResponse(
+        res,
+        false,
+        "FastAPI error",
+        response.status,
+        null,
+        errorData.detail || "Unknown error",
+      );
     }
 
     // Parse JSON response from FastAPI
     const result = await response.json();
 
-    return res.status(200).json({
-      success: true,
-      message: "Image comparison completed",
-      data: result,
-    });
+    return sendResponse(res, true, "Image comparison completed", 200, result);
   } catch (error) {
     console.error("compareImages error:", error);
 
@@ -112,10 +116,12 @@ export const compareImages = async (
       console.error("Error cleaning up files after error:", cleanupError);
     }
 
-    return res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    return sendResponse(
+      res,
+      false,
+      error instanceof Error ? error.message : "Unknown error",
+      500,
+    );
   }
 };
 
@@ -144,7 +150,5 @@ export const getApiInfo = (req: Request, res: Response) => {
     },
   };
 
-  return res
-    .status(200)
-    .json({ success: true, message: "CLIP API information", data: info });
+  return sendResponse(res, true, "CLIP API information", 200, info);
 };

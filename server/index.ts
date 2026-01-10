@@ -1,6 +1,6 @@
 import app from "./src/app.js";
 import dotenv from "dotenv";
-import { postgresConnection } from "./src/config/db.postgres.js";
+import { postgresConnection } from "./src/config/db.js";
 
 dotenv.config();
 

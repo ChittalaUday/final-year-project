@@ -9,15 +9,16 @@ The primary backend service for the Skill Compass platform, serving as the API G
 
 ## 2️⃣ Tech Stack
 
-*   **Runtime**: Node.js
-*   **Language**: TypeScript
-*   **Framework**: Express.js
-*   **Database**: PostgreSQL
-*   **ORM**: Prisma
-*   **Authentication**: JWT (JSON Web Tokens) & Bcrypt
-*   **File Handling**: Multer (Uploads), Sharp/Jimp (Image Processing)
-*   **Validation**: Joi
-*   **Testing**: None currently integrated.
+- **Runtime**: Node.js
+- **Language**: TypeScript
+- **Framework**: Express.js
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **Authentication**: JWT (JSON Web Tokens) & Bcrypt
+- **File Handling**: Multer (Uploads), Sharp/Jimp (Image Processing)
+- **Validation**: Joi
+- **Response Utility**: `sendResponse` (Standardised JSON)
+- **Testing**: Integration tests via `tsx` in `tests/` directory.
 
 ## 3️⃣ Folder Structure
 
@@ -39,36 +40,39 @@ server/
 
 ## 4️⃣ Current Features (Implemented)
 
-*   **User Authentication**: Register/Login endpoints with JWT issuance.
-*   **Secure Password Storage**: Hashing using Bcrypt.
-*   **Proxy to ML Service**: Receives file uploads/requests for Image Comparison (CLIP) and securely forwards them to the Python FastAPI server.
-*   **Request Logging**: using Morgan.
-*   **Global Error Handling**: Centralized error middleware.
+- **User Authentication**: Register/Login endpoints with JWT issuance and Joi validation.
+- **Secure Password Storage**: Hashing using Bcrypt.
+- **Adaptive Onboarding**: Multi-step onboarding with age-specific profile fields and data-type validation.
+- **Proxy to ML Service**: Receives file uploads/requests for Image Comparison (CLIP) and securely forwards them to the Python FastAPI server.
+- **Request Logging**: using Morgan.
+- **Global Error Handling**: Centralized error middleware with standardized responses.
 
 ## 5️⃣ Partially Implemented / In Progress
 
-*   **User Profile Management**: Routes exist but basic CRUD is minimal.
-*   **Authorization Levels**: Role-based access control (Admin vs User) is scaffolding.
+- **User Profile Management**: Routes exist but basic CRUD is minimal.
+- **Authorization Levels**: Role-based access control (Admin vs User) is scaffolding.
 
 ## 6️⃣ Environment Variables
 
 Create a `.env` file in `server/` based on `.env.example`:
 
-| Key | Description | Default |
-| :--- | :--- | :--- |
-| `PORT` | API Server Port | `5003` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://...` |
-| `JWT_SECRET` | Secret key for signing tokens | (Set a strong secret) |
-| `FASTAPI_URL` | URL of the running Python ML service | `http://localhost:8000` |
-| `NODE_ENV` | Environment (development/production) | `development` |
+| Key            | Description                          | Default                 |
+| :------------- | :----------------------------------- | :---------------------- |
+| `PORT`         | API Server Port                      | `5003`                  |
+| `DATABASE_URL` | PostgreSQL connection string         | `postgresql://...`      |
+| `JWT_SECRET`   | Secret key for signing tokens        | (Set a strong secret)   |
+| `FASTAPI_URL`  | URL of the running Python ML service | `http://localhost:8000` |
+| `NODE_ENV`     | Environment (development/production) | `development`           |
 
 ## 7️⃣ How to Run This Service
 
 ### Prerequisites
-*   Node.js (v18+)
-*   PostgreSQL Database running
+
+- Node.js (v18+)
+- PostgreSQL Database running
 
 ### Setup
+
 1.  Navigate to the directory:
     ```bash
     cd server
@@ -87,23 +91,28 @@ Create a `.env` file in `server/` based on `.env.example`:
     ```
 
 ### Start Server
+
 ```bash
 # Development (with auto-restart)
 npm run dev
+
+# Verification & Tests
+npm run test
 
 # Production Build
 npm run build
 npm start
 ```
+
 Server runs on `http://localhost:5003`.
 
 ## 8️⃣ API / Integration Notes
 
-*   **Auth**: Most endpoints require `Authorization: Bearer <token>` header.
-*   **Integration with ML**:
-    *   The `POST /api/clip/compare` endpoint accepts `multipart/form-data`.
-    *   It temporarily saves files -> sends to FastAPI -> cleans up files -> returns ML result.
+- **Auth**: Most endpoints require `Authorization: Bearer <token>` header.
+- **Integration with ML**:
+  - The `POST /api/clip/compare` endpoint accepts `multipart/form-data`.
+  - It temporarily saves files -> sends to FastAPI -> cleans up files -> returns ML result.
 
 ## 9️⃣ Known Limitations
 
-*   **File Cleanup**: If the server crashes mid-process, temp files in `uploads/` might remain.
+- **File Cleanup**: If the server crashes mid-process, temp files in `uploads/` might remain.

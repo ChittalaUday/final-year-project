@@ -1,0 +1,60 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/client-mongodb"
+}
+
+// =============================
+// ML / AI MODELS (MongoDB)
+// =============================
+
+model MLPrediction {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String // Reference to Postgres User ID
+
+  // Input Features (encoded)
+  inputFeatures Json // Stores the processed input data
+
+  // Model Output
+  predictedCourse String? // Predicted course/career from model
+  confidence      String // Confidence Level as string for flexibility
+  confidenceScore Float // 0.0 - 1.0
+
+  // Alternative Recommendations
+  alternativeCareers String[] // Top N alternative predictions
+  alternativeScores  Float[]
+
+  // Model Metadata
+  modelVersion String
+  modelType    String @default("RandomForest")
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CareerRecommendation {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String
+  predictionId String // Reference to MongoDB MLPrediction ID
+
+  careerTitle       String
+  careerDescription String?
+  requiredSkills    String[]
+  educationPath     String[]
+  industryDemand    String? // "High", "Medium", "Low"
+  avgSalaryRange    String?
+
+  isAccepted  Boolean @default(false)
+  isExploring Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([careerTitle])
+}

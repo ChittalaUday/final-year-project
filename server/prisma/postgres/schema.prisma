@@ -1,0 +1,608 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["core", "onboarding", "ml", "lms"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  output          = "../../node_modules/@prisma/client-postgres"
+}
+
+// =============================
+// ENUMS
+// =============================
+
+enum UserRole {
+  LEARNER
+  INSTRUCTOR
+  MENTOR
+  ADMIN
+  INSTITUTION
+  COMPANY
+
+  @@schema("core")
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+
+  @@schema("onboarding")
+}
+
+enum AgeGroup {
+  CHILD // < 13
+  SCHOOL // 13-18
+  COLLEGE // 18-22
+  GRADUATE // 22-35
+  PROFESSIONAL // 35+
+
+  @@schema("core")
+}
+
+enum ConfidenceLevel {
+  HIGH
+  MEDIUM
+  LOW
+  INSUFFICIENT
+
+  @@schema("ml")
+}
+
+enum ContentType {
+  VIDEO
+  ARTICLE
+  QUIZ
+  INTERACTIVE
+  EXERCISE
+
+  @@schema("lms")
+}
+
+enum AssessmentType {
+  APTITUDE
+  SKILL
+  KNOWLEDGE
+  PRACTICE
+
+  @@schema("lms")
+}
+
+// =============================
+// CORE USER MODELS
+// =============================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String?
+  phoneNumber   String?
+  role          UserRole @default(LEARNER)
+  isActive      Boolean  @default(true)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  profile            UserProfile?
+  onboarding         OnboardingProgress?
+  learnerProfile     LearnerProfile?
+  instructorProfile  InstructorProfile?
+  institutionProfile InstitutionProfile?
+
+  // Learning Relations
+  enrollments  Enrollment[]
+  progress     LearningProgress[]
+  assessments  AssessmentResult[]
+  achievements Achievement[]
+
+  @@index([email])
+  @@index([role])
+  @@schema("core")
+}
+
+model UserProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  avatarUrl   String?
+  bio         String?
+  dateOfBirth DateTime?
+  gender      String?
+  country     String?
+  city        String?
+  timezone    String?
+  language    String    @default("en")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@schema("core")
+}
+
+// =============================
+// ONBOARDING MODELS
+// =============================
+
+model OnboardingProgress {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status      OnboardingStatus @default(NOT_STARTED)
+  currentStep Int              @default(0)
+  totalSteps  Int              @default(0)
+  ageGroup    AgeGroup?
+
+  // Step Completion Flags
+  roleSelected       Boolean @default(false)
+  ageDetected        Boolean @default(false)
+  interestsCollected Boolean @default(false)
+  skillsCollected    Boolean @default(false)
+  assessmentComplete Boolean @default(false)
+  careerRecommended  Boolean @default(false)
+  pathGenerated      Boolean @default(false)
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@schema("onboarding")
+}
+
+model LearnerProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Age Group Specific Data
+  ageGroup AgeGroup
+
+  // Child (<13)
+  parentEmail   String?
+  parentConsent Boolean @default(false)
+
+  // School Student (13-18)
+  schoolName String?
+  grade      Int?
+
+  // College Student (18-22)
+  collegeName    String?
+  course         String? // e.g., "B.Tech", "B.Sc"
+  specialization String? // e.g., "Computer Science"
+  currentYear    Int?
+  cgpaPercentage Float?
+
+  // Graduate / Early Professional (22-35)
+  highestEducation  String?
+  yearsOfExperience Float?
+  currentJobTitle   String?
+  currentCompany    String?
+  currentIndustry   String?
+
+  // Working Professional (35+)
+  totalExperience   Float?
+  domainShiftIntent Boolean @default(false)
+  targetDomain      String?
+
+  // Certifications
+  certifications String[] // JSON array of certification names
+
+  // Collections
+  // Interests and Skills
+  interests   LearnerInterest[]
+  skills      LearnerSkill[]
+  careerGoals CareerGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([ageGroup])
+  @@schema("onboarding")
+}
+
+model Interest {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  category String? // e.g., "Technology", "Arts", "Science"
+
+  // Relations
+  profiles LearnerInterest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@schema("onboarding")
+}
+
+model Skill {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  category String? // e.g., "Programming", "Communication"
+
+  // Relations
+  profiles LearnerSkill[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@schema("onboarding")
+}
+
+model LearnerInterest {
+  id               String         @id @default(uuid())
+  learnerProfileId String
+  learnerProfile   LearnerProfile @relation(fields: [learnerProfileId], references: [id], onDelete: Cascade)
+  interestId       String
+  interest         Interest       @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  priority Int @default(1)
+
+  createdAt DateTime @default(now())
+
+  @@unique([learnerProfileId, interestId])
+  @@index([learnerProfileId])
+  @@index([interestId])
+  @@schema("onboarding")
+}
+
+model LearnerSkill {
+  id               String         @id @default(uuid())
+  learnerProfileId String
+  learnerProfile   LearnerProfile @relation(fields: [learnerProfileId], references: [id], onDelete: Cascade)
+  skillId          String
+  skill            Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  proficiencyLevel Int     @default(1) // 1-5 scale
+  isVerified       Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([learnerProfileId, skillId])
+  @@index([learnerProfileId])
+  @@index([skillId])
+  @@schema("onboarding")
+}
+
+model CareerGoal {
+  id               String         @id @default(uuid())
+  learnerProfileId String
+  learnerProfile   LearnerProfile @relation(fields: [learnerProfileId], references: [id], onDelete: Cascade)
+
+  goalTitle   String
+  description String?
+  targetDate  DateTime?
+  priority    Int       @default(1)
+  isActive    Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([learnerProfileId])
+  @@schema("onboarding")
+}
+
+// =============================
+// ML / AI MODELS
+// =============================
+
+model MLPrediction {
+  id     String @id @default(uuid())
+  userId String
+
+  // Input Features (encoded)
+  inputFeatures Json // Stores the processed input data
+
+  // Model Output
+  predictedCourse String? // Predicted course/career from model
+  confidence      ConfidenceLevel
+  confidenceScore Float // 0.0 - 1.0
+
+  // Alternative Recommendations
+  alternativeCareers String[] // Top N alternative predictions
+  alternativeScores  Float[]
+
+  // Model Metadata
+  modelVersion String
+  modelType    String @default("RandomForest")
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([confidence])
+  @@schema("ml")
+}
+
+model CareerRecommendation {
+  id           String @id @default(uuid())
+  userId       String
+  predictionId String
+
+  careerTitle       String
+  careerDescription String?
+  requiredSkills    String[]
+  educationPath     String[]
+  industryDemand    String? // "High", "Medium", "Low"
+  avgSalaryRange    String?
+
+  isAccepted  Boolean @default(false)
+  isExploring Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([careerTitle])
+  @@schema("ml")
+}
+
+model LearningPath {
+  id     String @id @default(uuid())
+  userId String
+
+  pathName          String
+  description       String?
+  targetCareer      String
+  estimatedDuration Int? // in weeks
+  difficultyLevel   String? // "Beginner", "Intermediate", "Advanced"
+
+  isActive          Boolean @default(true)
+  completionPercent Float   @default(0.0)
+
+  // Relations
+  modules LearningModule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([targetCareer])
+  @@schema("lms")
+}
+
+model LearningModule {
+  id     String       @id @default(uuid())
+  pathId String
+  path   LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  title         String
+  description   String?
+  orderIndex    Int
+  estimatedTime Int? // in minutes
+
+  // Relations
+  content Content[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pathId])
+  @@index([orderIndex])
+  @@schema("lms")
+}
+
+model Content {
+  id       String         @id @default(uuid())
+  moduleId String
+  module   LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  contentType ContentType
+  contentUrl  String? // URL to video, article, etc.
+  duration    Int? // in minutes
+  orderIndex  Int
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([moduleId])
+  @@index([contentType])
+  @@schema("lms")
+}
+
+// =============================
+// ASSESSMENT MODELS
+// =============================
+
+model Assessment {
+  id             String         @id @default(uuid())
+  title          String
+  description    String?
+  assessmentType AssessmentType
+  duration       Int? // in minutes
+  passingScore   Float?
+
+  isActive Boolean @default(true)
+
+  // Relations
+  questions Question[]
+  results   AssessmentResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assessmentType])
+  @@schema("lms")
+}
+
+model Question {
+  id           String     @id @default(uuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  questionText  String
+  questionType  String // "multiple_choice", "true_false", "fill_blank"
+  options       String[] // For multiple choice
+  correctAnswer String
+  explanation   String?
+  points        Int      @default(1)
+  orderIndex    Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assessmentId])
+  @@schema("lms")
+}
+
+model AssessmentResult {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  score           Float
+  maxScore        Float
+  percentageScore Float
+  isPassed        Boolean
+
+  timeSpent   Int? // in seconds
+  answersJson Json // Store all answers
+
+  aiAnalysis      String? // AI-generated feedback
+  strengths       String[]
+  weaknesses      String[]
+  recommendations String[]
+
+  completedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([assessmentId])
+  @@schema("lms")
+}
+
+// =============================
+// PROGRESS TRACKING
+// =============================
+
+model Enrollment {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pathId String
+
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+  isActive    Boolean   @default(true)
+
+  @@index([userId])
+  @@index([pathId])
+  @@schema("lms")
+}
+
+model LearningProgress {
+  id        String @id @default(uuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId String
+
+  isCompleted     Boolean   @default(false)
+  progressPercent Float     @default(0.0)
+  timeSpent       Int       @default(0) // in seconds
+  lastAccessedAt  DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@unique([userId, contentId])
+  @@index([userId])
+  @@index([contentId])
+  @@schema("lms")
+}
+
+model Achievement {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  badgeUrl    String?
+  category    String? // "skill", "milestone", "assessment"
+  points      Int     @default(0)
+
+  awardedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([category])
+  @@schema("lms")
+}
+
+// =============================
+// INSTRUCTOR MODELS
+// =============================
+
+model InstructorProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expertise         String[]
+  bio               String?
+  qualifications    String[]
+  yearsOfExperience Float?
+
+  isVerified Boolean @default(false)
+  rating     Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@schema("core")
+}
+
+// =============================
+// INSTITUTION MODELS
+// =============================
+
+model InstitutionProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  institutionName String
+  institutionType String // "School", "College", "Company"
+  address         String?
+  website         String?
+  contactEmail    String?
+
+  // Relations
+  groups Group[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@schema("core")
+}
+
+model Group {
+  id            String             @id @default(uuid())
+  institutionId String
+  institution   InstitutionProfile @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  groupName   String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([institutionId])
+  @@schema("core")
+}

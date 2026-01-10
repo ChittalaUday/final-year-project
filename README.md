@@ -34,6 +34,7 @@ The system is split into three main components:
 - **/fastapi_server**: Python AI/ML Service. [Read more](./fastapi_server/README.md)
 - **/skill_compass_ai**: Flutter Frontend. [Read more](./skill_compass_ai/README.md)
 - **/research**: Data Science notebooks, datasets, and raw model training files.
+- **Progress Tracking**: See [API Standardisation Progress](./server/PROGRESS.md)
 
 ## 🚀 Getting Started
 
