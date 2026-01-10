@@ -11,7 +11,6 @@ The system is split into three main components:
     - **Role**: User Interface
     - **Port**: N/A (Runs on device/browser)
 2.  **Backend Server (`server/`)**:
-
     - **Tech**: Node.js, Express, TypeScript, Prisma
     - **Role**: API Gateway, Auth, Business Logic
     - **Port**: `5003`
@@ -51,9 +50,31 @@ Ensure you have the following installed:
 
 To run the full stack locally, follow this order:
 
-#### Step 1: Start the ML Service
+#### Step 1: Install Dependencies
 
-The backend depends on this service being available.
+Run this command in the root to install dependencies for Node.js, Python, and Flutter at once:
+
+```bash
+npm run install:all
+```
+
+#### Step 2: Start Services
+
+You can run the Backend and ML Service concurrently with one command:
+
+```bash
+npm run dev
+```
+
+#### Step 3: Run the Client
+
+```bash
+npm run dev:client
+```
+
+### Manual Setup (If preferred)
+
+#### ML Service
 
 ```bash
 cd fastapi_server
@@ -93,3 +114,38 @@ flutter run
 
 - **Docker Compose**: Add a `docker-compose.yml` to orchestrate all 3 services + DB with a single command.
 - **Shared Types**: Generate TypeScript interfaces from Pydantic models to ensure type safety across Python and Node.js.
+
+## 🛡️ Git Hooks & Code Quality
+
+This project uses **Husky** to enforce code quality and commit message standards.
+
+### Pre-commit Hooks
+
+The `pre-commit` hook uses **lint-staged** to automatically format code before it is committed:
+
+- **Prettier**: Formats `js`, `ts`, `json`, `md`, `html`, `css`.
+- **Dart Format**: Formats `*.dart` files in the Flutter project.
+- **Black**: Formats `*.py` files in Python projects.
+
+### Commit Message Linting
+
+We use **Commitlint** with the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+All commit messages must follow this format:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Common Examples:**
+
+- `feat: add new career prediction endpoint`
+- `fix: resolve cors issue in express server`
+- `chore: update dependencies`
+- `docs: update readme with setup instructions`
+- `refactor: clean up user controller`
+
+If your commit message does not follow this standard, the commit will be rejected.

@@ -1,0 +1,38 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "A comprehensive AI-driven platform for career recommendation and visual analysis, composed of a modern microservices architecture.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky",
+    "install:all": "npm install && cd server && npm install && cd ../skill_compass_ai && flutter pub get",
+    "install:server": "cd server && npm install",
+    "install:client": "cd skill_compass_ai && flutter pub get",
+    "dev": "concurrently -n \"SERVER,ML\" -c \"blue,yellow\" \"npm run dev:server\" \"npm run dev:ml\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:ml": "cd fastapi_server && python -m uvicorn app.main:app --reload",
+    "dev:client": "cd skill_compass_ai && flutter run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChittalaUday/final-year-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ChittalaUday/final-year-project/issues"
+  },
+  "homepage": "https://github.com/ChittalaUday/final-year-project#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
+    "prettier-plugin-prisma": "^5.0.0"
+  }
+}

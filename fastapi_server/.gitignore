@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.venv/
+env/
+python-env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Models & Large Files (Specific to this project)
+/ml_models/
+/Models/
+*.pt
+*.pth
+*.bin
+*.npy
+
+# Editor
+.idea/
+
+# Scikit-learn / Joblib
+*.pkl
+*.joblib

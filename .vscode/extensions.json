@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "dart-code.flutter",
+    "dart-code.dart-code",
+    "prisma.prisma",
+    "editorconfig.editorconfig"
+  ]
+}
