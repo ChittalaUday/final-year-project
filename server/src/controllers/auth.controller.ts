@@ -29,7 +29,14 @@ const authController = {
         { expiresIn: "10d" },
       );
 
-      const { password: _, ...userWithoutPassword } = user;
+      const userWithProgress = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          onboarding: true,
+        },
+      });
+
+      const { password: _, ...userWithoutPassword } = userWithProgress!;
 
       return sendResponse(res, true, "Login successful", 200, {
         token,
@@ -87,7 +94,14 @@ const authController = {
         { expiresIn: "10d" },
       );
 
-      const { password: _, ...userWithoutPassword } = newUser;
+      const userWithProgress = await prisma.user.findUnique({
+        where: { id: newUser.id },
+        include: {
+          onboarding: true,
+        },
+      });
+
+      const { password: _, ...userWithoutPassword } = userWithProgress!;
 
       return sendResponse(res, true, "User registered successfully", 201, {
         token,

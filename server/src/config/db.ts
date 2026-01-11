@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient as PostgresClient } from "@prisma/client-postgres";
 import { PrismaClient as MongoClient } from "@prisma/client-mongodb";
 

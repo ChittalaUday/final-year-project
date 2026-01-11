@@ -37,28 +37,42 @@ export class MLService {
       }
 
       // 2. Extract and Format Features
-      const gender = profile.user.profile?.gender || "Male"; // Defaulting to Male if not specified
+      const gender = profile.user.profile?.gender || "Male";
       const interestNames = profile.interests
         .map((i) => i.interest.name)
         .join(", ");
       const skillNames = profile.skills.map((s) => s.skill.name).join(", ");
 
-      // Determine grades/CGPA mapping
-      let grades = profile.cgpaPercentage || 75.0; // Default fallback
+      // Determine grades/CGPA mapping based on age group
+      let grades = profile.cgpaPercentage;
+
+      // Handle SECONDARY (SCHOOL) learners (13-18)
+      // If grades are missing or format is different, use appropriate proxy/fallback
+      if (profile.ageGroup === "SCHOOL" || profile.ageGroup === "CHILD") {
+        // For school students, if grades are not explicitly set, we might use a default median
+        // Or if they provided a 'grade' (e.g., 10th), we can infer a base score
+        grades = grades || 80.0; // Higher baseline for school performance in this model
+      } else {
+        // College/Graduate/Professional
+        grades = grades || 70.0; // Standard fallback
+      }
 
       // 3. Call FastAPI Prediction Service
-      const response = await fetch(`${this.FASTAPI_URL}/api/career/predict`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${this.FASTAPI_URL}/api/v1/career/predict`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            gender: gender,
+            interest: interestNames || "Technology",
+            skills: skillNames || "Communication",
+            grades: grades,
+          }),
         },
-        body: JSON.stringify({
-          gender: gender,
-          interest: interestNames || "Technology", // Fallback for model stability
-          skills: skillNames || "Communication",
-          grades: grades,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
