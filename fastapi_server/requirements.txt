@@ -5,7 +5,7 @@ python-multipart==0.0.20
 pydantic-settings==2.6.1
 
 # ML & Career Recommendation
-scikit-learn==1.6.0
+scikit-learn==1.5.2
 pandas==2.2.3
 numpy==2.2.1
 joblib==1.4.2
@@ -23,6 +23,8 @@ scikit-image>=0.21.0
 requests>=2.28.0
 python-dotenv>=1.0.0
 
+
 # Development (optional)
 pytest>=7.0.0
 httpx>=0.24.0
+black>=24.0.0
