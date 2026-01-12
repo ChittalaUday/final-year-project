@@ -37,6 +37,16 @@ export async function postgresConnection() {
   }
 }
 
+export async function mongoConnection() {
+  try {
+    await prismaMongo.$connect();
+    console.log("✅ MongoDB Connected successfully");
+  } catch (error) {
+    console.error("❌ MongoDB Connection failed:", error);
+    process.exit(1);
+  }
+}
+
 export default {
   postgres,
   mongo,

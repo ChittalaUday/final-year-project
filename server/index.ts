@@ -1,6 +1,6 @@
 import app from "./src/app.js";
 import dotenv from "dotenv";
-import { postgresConnection } from "./src/config/db.js";
+import { postgresConnection, mongoConnection } from "./src/config/db.js";
 
 dotenv.config();
 
@@ -8,6 +8,7 @@ const port = process.env.PORT || 5001;
 
 async function startServer() {
   await postgresConnection();
+  await mongoConnection();
 
   await app
     .listen(port, () => {

@@ -6,13 +6,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",
-    "install:all": "npm install && cd server && npm install && cd ../fastapi_server && venv\\bin\\python -m pip install -r requirements.txt && cd ../skill_compass_ai && flutter pub get",
+    "install:all": "npm install && cd server && npm install && cd ../fastapi_server && venv\\Scripts\\python -m pip install -r requirements.txt && cd ../skill_compass_ai && flutter pub get",
     "install:server": "cd server && npm install",
-    "install:ml": "cd fastapi_server && venv\\bin\\python -m pip install -r requirements.txt",
+    "install:ml": "cd fastapi_server && venv\\Scripts\\python -m pip install -r requirements.txt",
     "install:client": "cd skill_compass_ai && flutter pub get",
     "dev": "concurrently -n \"SERVER,ML\" -c \"blue,yellow\" \"npm run dev:server\" \"npm run dev:ml\"",
     "dev:server": "cd server && npm run dev",
-    "dev:ml": "cd fastapi_server && venv\\bin\\python -m uvicorn app.main:app --reload",
+    "dev:ml": "cd fastapi_server && venv\\Scripts\\python -m uvicorn app.main:app --reload",
     "dev:client": "cd skill_compass_ai && flutter run",
     "db:seed": "cd server && npm exec prisma db seed"
   },

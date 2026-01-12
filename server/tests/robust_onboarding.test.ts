@@ -48,7 +48,7 @@ async function runRobustTest() {
       name: "Robust Tester",
       email: email,
       password: "password123",
-      dob: "2007-10-20", // School student (18 years old)
+      dob: "2010-10-20", // School student (16 years old)
     });
 
     console.log("✅ Registration Success!");
